@@ -1,0 +1,39 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true
+  },
+  "noUncheckedIndexedAccess": true,
+  "noUnusedLocals": true,
+  "noImplicitAny": true,
+  "noImplicitThis": true,
+  "target": "ESNext",
+  "lib": [
+    "ESNext"
+  ],
+  "module": "ESNext",
+  "moduleResolution": "Node",
+  "verbatimModuleSyntax": true,
+  "baseUrl": ".",
+  "paths": {
+    "@/*": [
+      "./*"
+    ]
+  },
+  "ts-node": {
+    "emit": false,
+    "transpileOnly": true,
+    "files": true,
+    "compilerOptions": {
+      "module": "CommonJS"
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "babel.config.js"
+  ],
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ]
+}
