@@ -3,7 +3,7 @@ import "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useFonts } from "expo-font";
-import { StyleSheet } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 import { RootNavigator } from "./navigation";
 import { ThemeProvider } from "./contexts";
@@ -17,7 +17,11 @@ export default function App() {
 	const isStoreReady = useStoreReady();
 
 	if (!fontsLoaded || !isStoreReady) {
-		return null;
+		return (
+			<View style={styles.loader}>
+				<ActivityIndicator size="large" />
+			</View>
+		);
 	}
 
 	return (
@@ -34,5 +38,10 @@ export default function App() {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
+	},
+	loader: {
+		alignItems: "center",
+		flex: 1,
+		justifyContent: "center",
 	},
 });

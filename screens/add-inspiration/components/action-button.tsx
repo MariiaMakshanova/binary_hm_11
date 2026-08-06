@@ -1,10 +1,11 @@
 import React from "react";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
 
 type ActionButtonProps = {
 	children: string;
 	disabled?: boolean;
 	filled?: boolean;
+	loading?: boolean;
 	onPress: () => void;
 	primaryColor: string;
 	inverseTextColor: string;
@@ -15,12 +16,13 @@ const ActionButton: React.FC<ActionButtonProps> = ({
 	disabled = false,
 	filled = false,
 	inverseTextColor,
+	loading = false,
 	onPress,
 	primaryColor,
 }) => (
 	<Pressable
 		accessibilityRole="button"
-		disabled={disabled}
+		disabled={disabled || loading}
 		onPress={onPress}
 		style={[
 			styles.button,
@@ -31,14 +33,18 @@ const ActionButton: React.FC<ActionButtonProps> = ({
 			},
 		]}
 	>
-		<Text
-			style={[
-				styles.buttonText,
-				{ color: filled ? inverseTextColor : primaryColor },
-			]}
-		>
-			{children}
-		</Text>
+		{loading ? (
+			<ActivityIndicator color={filled ? inverseTextColor : primaryColor} />
+		) : (
+			<Text
+				style={[
+					styles.buttonText,
+					{ color: filled ? inverseTextColor : primaryColor },
+				]}
+			>
+				{children}
+			</Text>
+		)}
 	</Pressable>
 );
 

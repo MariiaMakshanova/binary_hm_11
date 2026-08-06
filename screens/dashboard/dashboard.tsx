@@ -1,7 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
+	ActivityIndicator,
+	Alert,
 	FlatList,
 	Image,
 	Pressable,
@@ -31,6 +33,9 @@ const Dashboard: React.FC<
 	const inspirations = useAppSelector(
 		(state) => state.inspirations.inspirations,
 	);
+	const { error, isLoading } = useAppSelector(
+		(state) => state.inspirations,
+	);
 	const sortedInspirations = useMemo(
 		() =>
 			[...inspirations].sort((firstInspiration, secondInspiration) => {
@@ -52,8 +57,12 @@ const Dashboard: React.FC<
 			currentDirection === "asc" ? "desc" : "asc",
 		);
 	};
-	const handleDelete = (id: string) => {
-		void dispatch(removeInspiration(id));
+	const handleDelete = async (id: string) => {
+		try {
+			await dispatch(removeInspiration(id)).unwrap();
+		} catch {
+			Alert.alert("Delete failed", "Please try again.");
+		}
 	};
 	const handleEdit = (inspiration: Inspiration) => {
 		const rootNavigation = navigation.getParent() as
@@ -64,6 +73,12 @@ const Dashboard: React.FC<
 			inspiration,
 		});
 	};
+
+	useEffect(() => {
+		if (error) {
+			Alert.alert("Storage error", error);
+		}
+	}, [error]);
 
 	return (
 		<ScreenBackground>
@@ -121,6 +136,11 @@ const Dashboard: React.FC<
 					/>
 				</SwipeableCardProvider>
 			)}
+			{isLoading && (
+				<View style={styles.loaderOverlay}>
+					<ActivityIndicator color={theme.PRIMARY} size="large" />
+				</View>
+			)}
 		</ScreenBackground>
 	);
 };
@@ -128,6 +148,12 @@ const Dashboard: React.FC<
 const styles = StyleSheet.create({
 	list: {
 		paddingBottom: 24,
+	},
+	loaderOverlay: {
+		alignItems: "center",
+		...StyleSheet.absoluteFillObject,
+		justifyContent: "center",
+		pointerEvents: "none",
 	},
 	placeholder: {
 		alignItems: "center",

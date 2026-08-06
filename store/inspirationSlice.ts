@@ -1,6 +1,7 @@
 import {
 	createAsyncThunk,
 	createSlice,
+	isAnyOf,
 	nanoid,
 	type PayloadAction,
 } from "@reduxjs/toolkit";
@@ -137,6 +138,38 @@ const inspirationSlice = createSlice({
 					state.inspirations = state.inspirations.filter(
 						(inspiration) => inspiration.id !== action.payload,
 					);
+				},
+			)
+			.addMatcher(
+				isAnyOf(
+					createInspiration.pending,
+					editInspiration.pending,
+					removeInspiration.pending,
+				),
+				(state) => {
+					state.error = null;
+					state.isLoading = true;
+				},
+			)
+			.addMatcher(
+				isAnyOf(
+					createInspiration.fulfilled,
+					editInspiration.fulfilled,
+					removeInspiration.fulfilled,
+				),
+				(state) => {
+					state.isLoading = false;
+				},
+			)
+			.addMatcher(
+				isAnyOf(
+					createInspiration.rejected,
+					editInspiration.rejected,
+					removeInspiration.rejected,
+				),
+				(state, action) => {
+					state.error = action.error.message ?? "Operation failed";
+					state.isLoading = false;
 				},
 			);
 	},

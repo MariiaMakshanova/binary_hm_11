@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import {
+	ActivityIndicator,
 	Alert,
 	KeyboardAvoidingView,
-	Platform,
 	ScrollView,
 	StyleSheet,
 	TextInput,
@@ -23,6 +23,7 @@ import { ActionButton, IconActionButton } from "./components";
 import type { RootStackScreenProps } from "../../types";
 
 const NO_IMAGE_SOURCE = require("../../assets/no-image.jpg");
+type LoadingAction = "image" | "quote" | "save" | null;
 
 const AddInspiration: React.FC<
 	RootStackScreenProps<typeof ROUTE_NAME.ADD_INSPIRATION>
@@ -38,8 +39,10 @@ const AddInspiration: React.FC<
 		editingInspiration?.quote ?? "",
 	);
 	const [generatedQuote, setGeneratedQuote] = useState("");
+	const [loadingAction, setLoadingAction] = useState<LoadingAction>(null);
 	const quote = inputQuote.trim() || generatedQuote.trim();
 	const isSaveDisabled = !imageUrl || !quote;
+	const isBusy = loadingAction !== null;
 
 	useEffect(() => {
 		setImageUrl(editingInspiration?.image_url ?? "");
@@ -48,42 +51,58 @@ const AddInspiration: React.FC<
 	}, [editingInspiration]);
 
 	const pickImageFromGallery = async () => {
-		const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+		setLoadingAction("image");
 
-		if (!permission.granted) {
-			Alert.alert("Permission required", "Please allow gallery access.");
-			return;
-		}
+		try {
+			const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-		const result = await ImagePicker.launchImageLibraryAsync({
-			allowsEditing: true,
-			mediaTypes: ImagePicker.MediaTypeOptions.Images,
-			quality: 1,
-		});
-		const selectedImage = result.assets?.[0];
+			if (!permission.granted) {
+				Alert.alert("Permission required", "Please allow gallery access.");
+				return;
+			}
 
-		if (!result.canceled && selectedImage?.uri) {
-			setImageUrl(selectedImage.uri);
+			const result = await ImagePicker.launchImageLibraryAsync({
+				allowsEditing: true,
+				mediaTypes: ImagePicker.MediaTypeOptions.Images,
+				quality: 1,
+			});
+			const selectedImage = result.assets?.[0];
+
+			if (!result.canceled && selectedImage?.uri) {
+				setImageUrl(selectedImage.uri);
+			}
+		} catch {
+			Alert.alert("Image error", "Could not choose image.");
+		} finally {
+			setLoadingAction(null);
 		}
 	};
 
 	const pickImageFromCamera = async () => {
-		const permission = await ImagePicker.requestCameraPermissionsAsync();
+		setLoadingAction("image");
 
-		if (!permission.granted) {
-			Alert.alert("Permission required", "Please allow camera access.");
-			return;
-		}
+		try {
+			const permission = await ImagePicker.requestCameraPermissionsAsync();
 
-		const result = await ImagePicker.launchCameraAsync({
-			allowsEditing: true,
-			mediaTypes: ImagePicker.MediaTypeOptions.Images,
-			quality: 1,
-		});
-		const selectedImage = result.assets?.[0];
+			if (!permission.granted) {
+				Alert.alert("Permission required", "Please allow camera access.");
+				return;
+			}
 
-		if (!result.canceled && selectedImage?.uri) {
-			setImageUrl(selectedImage.uri);
+			const result = await ImagePicker.launchCameraAsync({
+				allowsEditing: true,
+				mediaTypes: ImagePicker.MediaTypeOptions.Images,
+				quality: 1,
+			});
+			const selectedImage = result.assets?.[0];
+
+			if (!result.canceled && selectedImage?.uri) {
+				setImageUrl(selectedImage.uri);
+			}
+		} catch {
+			Alert.alert("Camera error", "Could not take a photo.");
+		} finally {
+			setLoadingAction(null);
 		}
 	};
 
@@ -96,15 +115,41 @@ const AddInspiration: React.FC<
 	};
 
 	const handleRandomImage = async () => {
-		const image = await getRandomImage();
-		setImageUrl(image.download_url);
+		setLoadingAction("image");
+
+		try {
+			const image = await getRandomImage();
+
+			if (!image.download_url) {
+				throw new Error("Random image is empty");
+			}
+
+			setImageUrl(image.download_url);
+		} catch {
+			Alert.alert("Image error", "Could not load a random image.");
+		} finally {
+			setLoadingAction(null);
+		}
 	};
 
 	const handleRandomQuote = async () => {
-		const randomQuote = await getRandomQuote();
+		setLoadingAction("quote");
 
-		setInputQuote("");
-		setGeneratedQuote(randomQuote.quoteText.trim());
+		try {
+			const randomQuote = await getRandomQuote();
+			const nextQuote = randomQuote.quoteText.trim();
+
+			if (!nextQuote) {
+				throw new Error("Random quote is empty");
+			}
+
+			setInputQuote("");
+			setGeneratedQuote(nextQuote);
+		} catch {
+			Alert.alert("Quote error", "Could not load a random quote.");
+		} finally {
+			setLoadingAction(null);
+		}
 	};
 
 	const handleInputChange = (value: string) => {
@@ -116,6 +161,8 @@ const AddInspiration: React.FC<
 		if (isSaveDisabled) {
 			return;
 		}
+
+		setLoadingAction("save");
 
 		try {
 			if (editingInspiration) {
@@ -140,13 +187,15 @@ const AddInspiration: React.FC<
 			});
 		} catch {
 			Alert.alert("Save failed", "Please try again.");
+		} finally {
+			setLoadingAction(null);
 		}
 	};
 
 	return (
 		<ScreenBackground>
 			<KeyboardAvoidingView
-				behavior={Platform.OS === "ios" ? "padding" : "height"}
+				behavior="height"
 				style={styles.keyboardView}
 			>
 				<ScrollView
@@ -162,14 +211,18 @@ const AddInspiration: React.FC<
 						/>
 					</View>
 					<ActionButton
+						disabled={isBusy}
 						inverseTextColor={theme.FONT_INVERSE}
+						loading={loadingAction === "image"}
 						onPress={handleChooseImage}
 						primaryColor={theme.PRIMARY}
 					>
 						Choose image
 					</ActionButton>
 					<ActionButton
+						disabled={isBusy}
 						inverseTextColor={theme.FONT_INVERSE}
+						loading={loadingAction === "image"}
 						onPress={() => void handleRandomImage()}
 						primaryColor={theme.PRIMARY}
 					>
@@ -196,8 +249,10 @@ const AddInspiration: React.FC<
 					<View style={styles.footerActions}>
 						<IconActionButton
 							accessibilityLabel="Get random quote"
+							disabled={isBusy}
 							iconName="download-sharp"
 							inverseTextColor={theme.FONT_INVERSE}
+							loading={loadingAction === "quote"}
 							onPress={() => void handleRandomQuote()}
 							primaryColor={theme.PRIMARY}
 						/>
@@ -205,15 +260,21 @@ const AddInspiration: React.FC<
 							accessibilityLabel={
 								isEditMode ? "Save inspiration changes" : "Save inspiration"
 							}
-							disabled={isSaveDisabled}
+							disabled={isSaveDisabled || isBusy}
 							filled
 							iconName="save-sharp"
 							inverseTextColor={theme.FONT_INVERSE}
+							loading={loadingAction === "save"}
 							onPress={() => void handleSave()}
 							primaryColor={theme.PRIMARY}
 						/>
 					</View>
 				</ScrollView>
+				{isBusy && (
+					<View style={styles.loaderOverlay}>
+						<ActivityIndicator color={theme.PRIMARY} size="large" />
+					</View>
+				)}
 			</KeyboardAvoidingView>
 		</ScreenBackground>
 	);
@@ -240,6 +301,12 @@ const styles = StyleSheet.create({
 	},
 	keyboardView: {
 		flex: 1,
+	},
+	loaderOverlay: {
+		alignItems: "center",
+		...StyleSheet.absoluteFillObject,
+		justifyContent: "center",
+		pointerEvents: "none",
 	},
 	preview: {
 		alignSelf: "center",

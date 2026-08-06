@@ -2,19 +2,20 @@ import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Alert, Pressable } from "react-native";
+import { ActivityIndicator, Alert, Pressable } from "react-native";
 
 import { BottomTabsNavigator } from "./bottom-tabs-navigator";
 import { AddInspiration } from "../screens";
 import { ROUTE_NAME } from "../enums";
 import { useTheme } from "../hooks";
-import { removeInspiration, useAppDispatch } from "../store";
+import { removeInspiration, useAppDispatch, useAppSelector } from "../store";
 import type { RootStackParamList } from "../types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const RootNavigator = () => {
 	const dispatch = useAppDispatch();
+	const isStoreLoading = useAppSelector((state) => state.inspirations.isLoading);
 	const { theme, themeName } = useTheme();
 
 	return (
@@ -50,6 +51,7 @@ const RootNavigator = () => {
 										<Pressable
 											accessibilityLabel="Delete inspiration"
 											accessibilityRole="button"
+											disabled={isStoreLoading}
 											onPress={() => {
 												const { id } = inspiration;
 
@@ -85,11 +87,15 @@ const RootNavigator = () => {
 											}}
 											style={{ paddingLeft: 16 }}
 										>
-											<Ionicons
-												color={theme.PRIMARY}
-												name="trash"
-												size={28}
-											/>
+											{isStoreLoading ? (
+												<ActivityIndicator color={theme.PRIMARY} />
+											) : (
+												<Ionicons
+													color={theme.PRIMARY}
+													name="trash"
+													size={28}
+												/>
+											)}
 										</Pressable>
 									) : undefined,
 								headerLeft: () => (

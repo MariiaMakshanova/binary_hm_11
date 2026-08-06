@@ -1,12 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Pressable, StyleSheet } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet } from "react-native";
 
 type IconActionButtonProps = {
 	accessibilityLabel: string;
 	disabled?: boolean;
 	filled?: boolean;
 	iconName: keyof typeof Ionicons.glyphMap;
+	loading?: boolean;
 	onPress: () => void;
 	primaryColor: string;
 	inverseTextColor: string;
@@ -18,13 +19,14 @@ const IconActionButton: React.FC<IconActionButtonProps> = ({
 	filled = false,
 	iconName,
 	inverseTextColor,
+	loading = false,
 	onPress,
 	primaryColor,
 }) => (
 	<Pressable
 		accessibilityLabel={accessibilityLabel}
 		accessibilityRole="button"
-		disabled={disabled}
+		disabled={disabled || loading}
 		onPress={onPress}
 		style={[
 			styles.button,
@@ -35,11 +37,15 @@ const IconActionButton: React.FC<IconActionButtonProps> = ({
 			},
 		]}
 	>
-		<Ionicons
-			color={filled ? inverseTextColor : primaryColor}
-			name={iconName}
-			size={30}
-		/>
+		{loading ? (
+			<ActivityIndicator color={filled ? inverseTextColor : primaryColor} />
+		) : (
+			<Ionicons
+				color={filled ? inverseTextColor : primaryColor}
+				name={iconName}
+				size={30}
+			/>
+		)}
 	</Pressable>
 );
 
