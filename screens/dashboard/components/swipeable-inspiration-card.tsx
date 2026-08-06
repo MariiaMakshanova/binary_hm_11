@@ -3,7 +3,7 @@ import React, { useRef } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 
-import { InspirationCard } from "../../../components";
+import { FadeInView, InspirationCard } from "../../../components";
 import { useSwipeableCard } from "../../../contexts";
 import { useTheme } from "../../../hooks";
 import type { Inspiration } from "../../../types";
@@ -38,42 +38,44 @@ const SwipeableInspirationCard: React.FC<SwipeableInspirationCardProps> = ({
 	};
 
 	return (
-		<Swipeable
-			ref={swipeableRef}
-			containerStyle={styles.container}
-			onSwipeableWillOpen={handleSwipeableWillOpen}
-			overshootLeft={false}
-			overshootRight={false}
-			renderLeftActions={() => (
-				<View style={[styles.actionContainer, styles.leftAction]}>
-					<Pressable
-						accessibilityLabel="Edit inspiration"
-						accessibilityRole="button"
-						onPress={handleEdit}
-						style={styles.actionButton}
-					>
-						<Ionicons color={theme.SECONDARY} name="create" size={36} />
-					</Pressable>
-				</View>
-			)}
-			renderRightActions={() => (
-				<View style={[styles.actionContainer, styles.rightAction]}>
-					<Pressable
-						accessibilityLabel="Delete inspiration"
-						accessibilityRole="button"
-						onPress={handleDelete}
-						style={styles.actionButton}
-					>
-						<Ionicons color={theme.PRIMARY} name="trash" size={36} />
-					</Pressable>
-				</View>
-			)}
-		>
-			<InspirationCard
-				imageUrl={inspiration.image_url}
-				quote={inspiration.quote}
-			/>
-		</Swipeable>
+		<FadeInView>
+			<Swipeable
+				ref={swipeableRef}
+				containerStyle={styles.container}
+				onSwipeableWillOpen={handleSwipeableWillOpen}
+				overshootLeft={false}
+				overshootRight={false}
+				renderLeftActions={() => (
+					<View style={[styles.actionContainer, styles.leftAction]}>
+						<Pressable
+							accessibilityLabel="Edit inspiration"
+							accessibilityRole="button"
+							onPress={handleEdit}
+							style={styles.actionButton}
+						>
+							<Ionicons color={theme.SECONDARY} name="create" size={36} />
+						</Pressable>
+					</View>
+				)}
+				renderRightActions={() => (
+					<View style={[styles.actionContainer, styles.rightAction]}>
+						<Pressable
+							accessibilityLabel="Delete inspiration"
+							accessibilityRole="button"
+							onPress={handleDelete}
+							style={styles.actionButton}
+						>
+							<Ionicons color={theme.PRIMARY} name="trash" size={36} />
+						</Pressable>
+					</View>
+				)}
+			>
+				<InspirationCard
+					imageUrl={inspiration.image_url}
+					quote={inspiration.quote}
+				/>
+			</Swipeable>
+		</FadeInView>
 	);
 };
 

@@ -7,6 +7,7 @@ import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 import { RootNavigator } from "./navigation";
 import { ThemeProvider } from "./contexts";
+import { useNotificationResponse } from "./hooks";
 import { useStoreReady } from "./store";
 
 export default function App() {
@@ -15,6 +16,7 @@ export default function App() {
 		"LobsterTwo-Regular": require("./assets/fonts/LobsterTwo-Regular.otf"),
 	});
 	const isStoreReady = useStoreReady();
+	useNotificationResponse();
 
 	if (!fontsLoaded || !isStoreReady) {
 		return (
