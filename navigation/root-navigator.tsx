@@ -2,17 +2,19 @@ import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Pressable } from "react-native";
+import { Alert, Pressable } from "react-native";
 
 import { BottomTabsNavigator } from "./bottom-tabs-navigator";
 import { AddInspiration } from "../screens";
 import { ROUTE_NAME } from "../enums";
 import { useTheme } from "../hooks";
+import { removeInspiration, useAppDispatch } from "../store";
 import type { RootStackParamList } from "../types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const RootNavigator = () => {
+	const dispatch = useAppDispatch();
 	const { theme, themeName } = useTheme();
 
 	return (
@@ -38,29 +40,78 @@ const RootNavigator = () => {
 					<Stack.Screen
 						component={AddInspiration}
 						name={ROUTE_NAME.ADD_INSPIRATION}
-						options={({ navigation, route }) => ({
-							headerBackVisible: false,
-							headerLeft: () => (
-								<Pressable
-									accessibilityRole="button"
-									onPress={() =>
-										navigation.navigate(ROUTE_NAME.BOTTOM_TABS_NAVIGATOR, {
-											screen: ROUTE_NAME.DASHBOARD,
-										})
-									}
-									style={{ paddingRight: 16 }}
-								>
-									<Ionicons
-										color={theme.PRIMARY}
-										name="arrow-back"
-										size={28}
-									/>
-								</Pressable>
-							),
-							title: route.params?.inspiration
-								? "Edit inspiration"
-								: "Add inspiration",
-						})}
+						options={({ navigation, route }) => {
+							const inspiration = route.params?.inspiration;
+
+							return {
+								headerBackVisible: false,
+								headerRight: () =>
+									inspiration ? (
+										<Pressable
+											accessibilityLabel="Delete inspiration"
+											accessibilityRole="button"
+											onPress={() => {
+												const { id } = inspiration;
+
+												Alert.alert(
+													"Delete inspiration",
+													"Are you sure you want to delete this inspiration?",
+													[
+														{ style: "cancel", text: "Cancel" },
+														{
+															onPress: () => {
+																void dispatch(removeInspiration(id))
+																	.unwrap()
+																	.then(() => {
+																		navigation.navigate(
+																			ROUTE_NAME.BOTTOM_TABS_NAVIGATOR,
+																			{
+																				screen: ROUTE_NAME.DASHBOARD,
+																			},
+																		);
+																	})
+																	.catch(() => {
+																		Alert.alert(
+																			"Delete failed",
+																			"Please try again.",
+																		);
+																	});
+															},
+															style: "destructive",
+															text: "Delete",
+														},
+													],
+												);
+											}}
+											style={{ paddingLeft: 16 }}
+										>
+											<Ionicons
+												color={theme.PRIMARY}
+												name="trash"
+												size={28}
+											/>
+										</Pressable>
+									) : undefined,
+								headerLeft: () => (
+									<Pressable
+										accessibilityRole="button"
+										onPress={() =>
+											navigation.navigate(ROUTE_NAME.BOTTOM_TABS_NAVIGATOR, {
+												screen: ROUTE_NAME.DASHBOARD,
+											})
+										}
+										style={{ paddingRight: 16 }}
+									>
+										<Ionicons
+											color={theme.PRIMARY}
+											name="arrow-back"
+											size={28}
+										/>
+									</Pressable>
+								),
+								title: inspiration ? "Edit inspiration" : "Add inspiration",
+							};
+						}}
 					/>
 				</Stack.Navigator>
 			</NavigationContainer>

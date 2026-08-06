@@ -19,7 +19,7 @@ import {
 	editInspiration,
 	useAppDispatch,
 } from "../../store";
-import { ActionButton } from "./components";
+import { ActionButton, IconActionButton } from "./components";
 import type { RootStackScreenProps } from "../../types";
 
 const NO_IMAGE_SOURCE = require("../../assets/no-image.jpg");
@@ -193,22 +193,26 @@ const AddInspiration: React.FC<
 						textAlignVertical="top"
 						value={inputQuote}
 					/>
-					<ActionButton
-						inverseTextColor={theme.FONT_INVERSE}
-						onPress={() => void handleRandomQuote()}
-						primaryColor={theme.PRIMARY}
-					>
-						Get random quote
-					</ActionButton>
-					<ActionButton
-						disabled={isSaveDisabled}
-						filled
-						inverseTextColor={theme.FONT_INVERSE}
-						onPress={() => void handleSave()}
-						primaryColor={theme.PRIMARY}
-					>
-						{isEditMode ? "Update" : "Save"}
-					</ActionButton>
+					<View style={styles.footerActions}>
+						<IconActionButton
+							accessibilityLabel="Get random quote"
+							iconName="download-sharp"
+							inverseTextColor={theme.FONT_INVERSE}
+							onPress={() => void handleRandomQuote()}
+							primaryColor={theme.PRIMARY}
+						/>
+						<IconActionButton
+							accessibilityLabel={
+								isEditMode ? "Save inspiration changes" : "Save inspiration"
+							}
+							disabled={isSaveDisabled}
+							filled
+							iconName="save-sharp"
+							inverseTextColor={theme.FONT_INVERSE}
+							onPress={() => void handleSave()}
+							primaryColor={theme.PRIMARY}
+						/>
+					</View>
 				</ScrollView>
 			</KeyboardAvoidingView>
 		</ScreenBackground>
@@ -219,6 +223,11 @@ const styles = StyleSheet.create({
 	content: {
 		gap: 14,
 		paddingBottom: 28,
+	},
+	footerActions: {
+		flexDirection: "row",
+		gap: 14,
+		width: "100%",
 	},
 	input: {
 		borderRadius: 12,
