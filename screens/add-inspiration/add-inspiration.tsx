@@ -14,6 +14,7 @@ import { InspirationCard, ScreenBackground } from "../../components";
 import { ROUTE_NAME } from "../../enums";
 import { useTheme } from "../../hooks";
 import { getRandomImage, getRandomQuote } from "../../services";
+import { createInspiration, useAppDispatch } from "../../store";
 import { ActionButton } from "./components";
 import type { RootStackScreenProps } from "../../types";
 
@@ -22,6 +23,7 @@ const NO_IMAGE_SOURCE = require("../../assets/no-image.jpg");
 const AddInspiration: React.FC<
 	RootStackScreenProps<typeof ROUTE_NAME.ADD_INSPIRATION>
 > = ({ navigation }) => {
+	const dispatch = useAppDispatch();
 	const { theme, themeName } = useTheme();
 	const [imageUrl, setImageUrl] = useState("");
 	const [inputQuote, setInputQuote] = useState("");
@@ -94,20 +96,25 @@ const AddInspiration: React.FC<
 		setInputQuote(value);
 	};
 
-	const handleSave = () => {
+	const handleSave = async () => {
 		if (isSaveDisabled) {
 			return;
 		}
 
-		navigation.navigate(ROUTE_NAME.BOTTOM_TABS_NAVIGATOR, {
-			screen: ROUTE_NAME.DASHBOARD,
-			params: {
-				inspiration: {
+		try {
+			await dispatch(
+				createInspiration({
 					image_url: imageUrl,
 					quote,
-				},
-			},
-		});
+				}),
+			).unwrap();
+
+			navigation.navigate(ROUTE_NAME.BOTTOM_TABS_NAVIGATOR, {
+				screen: ROUTE_NAME.DASHBOARD,
+			});
+		} catch {
+			Alert.alert("Save failed", "Please try again.");
+		}
 	};
 
 	return (
@@ -171,7 +178,7 @@ const AddInspiration: React.FC<
 						disabled={isSaveDisabled}
 						filled
 						inverseTextColor={theme.FONT_INVERSE}
-						onPress={handleSave}
+						onPress={() => void handleSave()}
 						primaryColor={theme.PRIMARY}
 					>
 						Save

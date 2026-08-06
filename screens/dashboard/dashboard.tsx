@@ -1,30 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { FlatList, Image, StyleSheet, Text, View } from "react-native";
 
 import { InspirationCard, ScreenBackground } from "../../components";
 import { ROUTE_NAME } from "../../enums";
 import { useTheme } from "../../hooks";
-import type { BottomTabsScreenProps, Inspiration } from "../../types";
+import { useAppSelector } from "../../store";
+import type { BottomTabsScreenProps } from "../../types";
 
 const Dashboard: React.FC<
 	BottomTabsScreenProps<typeof ROUTE_NAME.DASHBOARD>
-> = ({ navigation, route }) => {
+> = () => {
 	const { theme } = useTheme();
-	const [inspirations, setInspirations] = useState<Inspiration[]>([]);
-
-	useEffect(() => {
-		const createdInspiration = route.params?.inspiration;
-
-		if (!createdInspiration) {
-			return;
-		}
-
-		setInspirations((currentInspirations) => [
-			createdInspiration,
-			...currentInspirations,
-		]);
-		navigation.setParams({ inspiration: undefined });
-	}, [navigation, route.params?.inspiration]);
+	const inspirations = useAppSelector(
+		(state) => state.inspirations.inspirations,
+	);
 
 	return (
 		<ScreenBackground>
@@ -43,7 +32,7 @@ const Dashboard: React.FC<
 				<FlatList
 					contentContainerStyle={styles.list}
 					data={inspirations}
-					keyExtractor={(_, index) => `inspiration-${index}`}
+					keyExtractor={(item) => item.id}
 					renderItem={({ item }) => (
 						<View style={styles.cardWrapper}>
 							<InspirationCard imageUrl={item.image_url} quote={item.quote} />
