@@ -51,7 +51,9 @@ const BottomTabsNavigator = () => {
 							<Pressable
 								accessibilityRole="button"
 								onPress={() =>
-									rootNavigation?.navigate(ROUTE_NAME.ADD_INSPIRATION)
+									rootNavigation?.navigate(ROUTE_NAME.ADD_INSPIRATION, {
+										inspiration: undefined,
+									})
 								}
 								style={{ paddingHorizontal: 18 }}
 							>

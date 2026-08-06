@@ -1,5 +1,9 @@
+import "react-native-gesture-handler";
+
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useFonts } from "expo-font";
+import { StyleSheet } from "react-native";
 
 import { RootNavigator } from "./navigation";
 import { ThemeProvider } from "./contexts";
@@ -17,10 +21,18 @@ export default function App() {
 	}
 
 	return (
-		<SafeAreaProvider>
-			<ThemeProvider>
-				<RootNavigator />
-			</ThemeProvider>
-		</SafeAreaProvider>
+		<GestureHandlerRootView style={styles.container}>
+			<SafeAreaProvider>
+				<ThemeProvider>
+					<RootNavigator />
+				</ThemeProvider>
+			</SafeAreaProvider>
+		</GestureHandlerRootView>
 	);
 }
+
+const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+	},
+});

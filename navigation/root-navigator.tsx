@@ -38,7 +38,7 @@ const RootNavigator = () => {
 					<Stack.Screen
 						component={AddInspiration}
 						name={ROUTE_NAME.ADD_INSPIRATION}
-						options={({ navigation }) => ({
+						options={({ navigation, route }) => ({
 							headerBackVisible: false,
 							headerLeft: () => (
 								<Pressable
@@ -57,7 +57,9 @@ const RootNavigator = () => {
 									/>
 								</Pressable>
 							),
-							title: "Add inspiration",
+							title: route.params?.inspiration
+								? "Edit inspiration"
+								: "Add inspiration",
 						})}
 					/>
 				</Stack.Navigator>

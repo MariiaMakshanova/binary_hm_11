@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useMemo, useState } from "react";
 import {
 	FlatList,
@@ -9,15 +10,22 @@ import {
 	View,
 } from "react-native";
 
-import { InspirationCard, ScreenBackground } from "../../components";
+import { ScreenBackground } from "../../components";
+import { SwipeableCardProvider } from "../../contexts";
 import { ROUTE_NAME } from "../../enums";
 import { useTheme } from "../../hooks";
-import { useAppSelector } from "../../store";
-import type { BottomTabsScreenProps } from "../../types";
+import { removeInspiration, useAppDispatch, useAppSelector } from "../../store";
+import { SwipeableInspirationCard } from "./components";
+import type {
+	BottomTabsScreenProps,
+	Inspiration,
+	RootStackParamList,
+} from "../../types";
 
 const Dashboard: React.FC<
 	BottomTabsScreenProps<typeof ROUTE_NAME.DASHBOARD>
-> = () => {
+> = ({ navigation }) => {
+	const dispatch = useAppDispatch();
 	const { theme } = useTheme();
 	const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 	const inspirations = useAppSelector(
@@ -44,6 +52,18 @@ const Dashboard: React.FC<
 			currentDirection === "asc" ? "desc" : "asc",
 		);
 	};
+	const handleDelete = (id: string) => {
+		void dispatch(removeInspiration(id));
+	};
+	const handleEdit = (inspiration: Inspiration) => {
+		const rootNavigation = navigation.getParent() as
+			| NativeStackNavigationProp<RootStackParamList>
+			| undefined;
+
+		rootNavigation?.navigate(ROUTE_NAME.ADD_INSPIRATION, {
+			inspiration,
+		});
+	};
 
 	return (
 		<ScreenBackground>
@@ -59,52 +79,53 @@ const Dashboard: React.FC<
 					</Text>
 				</View>
 			) : (
-				<FlatList
-					contentContainerStyle={styles.list}
-					data={sortedInspirations}
-					keyExtractor={(item) => item.id}
-					ListHeaderComponent={
-						isSortingAvailable ? (
-							<Pressable
-								accessibilityLabel={`Sort inspirations by date. ${sortLabel}`}
-								accessibilityRole="button"
-								onPress={handleSortPress}
-								style={[
-									styles.sortButton,
-									{ borderColor: theme.PRIMARY },
-								]}
-							>
-								<Text style={[styles.sortText, { color: theme.PRIMARY }]}>
-									{sortLabel}
-								</Text>
-								<Ionicons
-									color={theme.PRIMARY}
-									name={
-										sortDirection === "asc"
-											? "arrow-up-circle"
-											: "arrow-down-circle"
-									}
-									size={26}
-								/>
-							</Pressable>
-						) : null
-					}
-					renderItem={({ item }) => (
-						<View style={styles.cardWrapper}>
-							<InspirationCard imageUrl={item.image_url} quote={item.quote} />
-						</View>
-					)}
-					showsVerticalScrollIndicator={false}
-				/>
+				<SwipeableCardProvider>
+					<FlatList
+						contentContainerStyle={styles.list}
+						data={sortedInspirations}
+						keyExtractor={(item) => item.id}
+						ListHeaderComponent={
+							isSortingAvailable ? (
+								<Pressable
+									accessibilityLabel={`Sort inspirations by date. ${sortLabel}`}
+									accessibilityRole="button"
+									onPress={handleSortPress}
+									style={[
+										styles.sortButton,
+										{ borderColor: theme.PRIMARY },
+									]}
+								>
+									<Text style={[styles.sortText, { color: theme.PRIMARY }]}>
+										{sortLabel}
+									</Text>
+									<Ionicons
+										color={theme.PRIMARY}
+										name={
+											sortDirection === "asc"
+												? "arrow-up-circle"
+												: "arrow-down-circle"
+										}
+										size={26}
+									/>
+								</Pressable>
+							) : null
+						}
+						renderItem={({ item }) => (
+							<SwipeableInspirationCard
+								inspiration={item}
+								onDelete={handleDelete}
+								onEdit={handleEdit}
+							/>
+						)}
+						showsVerticalScrollIndicator={false}
+					/>
+				</SwipeableCardProvider>
 			)}
 		</ScreenBackground>
 	);
 };
 
 const styles = StyleSheet.create({
-	cardWrapper: {
-		marginBottom: 22,
-	},
 	list: {
 		paddingBottom: 24,
 	},

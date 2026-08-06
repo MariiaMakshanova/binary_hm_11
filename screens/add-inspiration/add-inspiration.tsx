@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
 	Alert,
 	KeyboardAvoidingView,
@@ -14,7 +14,11 @@ import { InspirationCard, ScreenBackground } from "../../components";
 import { ROUTE_NAME } from "../../enums";
 import { useTheme } from "../../hooks";
 import { getRandomImage, getRandomQuote } from "../../services";
-import { createInspiration, useAppDispatch } from "../../store";
+import {
+	createInspiration,
+	editInspiration,
+	useAppDispatch,
+} from "../../store";
 import { ActionButton } from "./components";
 import type { RootStackScreenProps } from "../../types";
 
@@ -22,14 +26,26 @@ const NO_IMAGE_SOURCE = require("../../assets/no-image.jpg");
 
 const AddInspiration: React.FC<
 	RootStackScreenProps<typeof ROUTE_NAME.ADD_INSPIRATION>
-> = ({ navigation }) => {
+> = ({ navigation, route }) => {
 	const dispatch = useAppDispatch();
 	const { theme, themeName } = useTheme();
-	const [imageUrl, setImageUrl] = useState("");
-	const [inputQuote, setInputQuote] = useState("");
+	const editingInspiration = route.params?.inspiration;
+	const isEditMode = Boolean(editingInspiration);
+	const [imageUrl, setImageUrl] = useState(
+		editingInspiration?.image_url ?? "",
+	);
+	const [inputQuote, setInputQuote] = useState(
+		editingInspiration?.quote ?? "",
+	);
 	const [generatedQuote, setGeneratedQuote] = useState("");
 	const quote = inputQuote.trim() || generatedQuote.trim();
 	const isSaveDisabled = !imageUrl || !quote;
+
+	useEffect(() => {
+		setImageUrl(editingInspiration?.image_url ?? "");
+		setInputQuote(editingInspiration?.quote ?? "");
+		setGeneratedQuote("");
+	}, [editingInspiration]);
 
 	const pickImageFromGallery = async () => {
 		const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -102,12 +118,22 @@ const AddInspiration: React.FC<
 		}
 
 		try {
-			await dispatch(
-				createInspiration({
-					image_url: imageUrl,
-					quote,
-				}),
-			).unwrap();
+			if (editingInspiration) {
+				await dispatch(
+					editInspiration({
+						id: editingInspiration.id,
+						image_url: imageUrl,
+						quote,
+					}),
+				).unwrap();
+			} else {
+				await dispatch(
+					createInspiration({
+						image_url: imageUrl,
+						quote,
+					}),
+				).unwrap();
+			}
 
 			navigation.navigate(ROUTE_NAME.BOTTOM_TABS_NAVIGATOR, {
 				screen: ROUTE_NAME.DASHBOARD,
@@ -181,7 +207,7 @@ const AddInspiration: React.FC<
 						onPress={() => void handleSave()}
 						primaryColor={theme.PRIMARY}
 					>
-						Save
+						{isEditMode ? "Update" : "Save"}
 					</ActionButton>
 				</ScrollView>
 			</KeyboardAvoidingView>
